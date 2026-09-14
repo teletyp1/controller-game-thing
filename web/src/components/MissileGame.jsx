@@ -1,99 +1,104 @@
 import React, { useEffect, useRef } from 'react';
 
-const MissileGame = () => {
+const MissileGame = ({ playerConfigs }) => {
   const canvasRef = useRef(null);
   const requestRef = useRef();
 
-  // 1. Store mutable game state entirely outside of React's state
   const gameState = useRef({
-    missiles: [
-      { id: 0, x: 200, y: 200, angle: 0, velocity: 5, active: false, color: '#ef4444' }, // red-500
-      { id: 1, x: 200, y: 880, angle: 0, velocity: 5, active: false, color: '#3b82f6' }, // blue-500
-      { id: 2, x: 1720, y: 200, angle: 0, velocity: 5, active: false, color: '#10b981' }, // emerald-500
-      { id: 3, x: 1720, y: 880, angle: 0, velocity: 5, active: false, color: '#eab308' }, // yellow-500
-    ],
+    missiles: [],
     lastTime: performance.now(),
   });
+
+  useEffect(() => {
+    // 4 corners of a 1080p screen
+    const spawnPoints = [
+      { x: 200, y: 200, angle: 0 },
+      { x: 1720, y: 200, angle: Math.PI },
+      { x: 200, y: 880, angle: 0 },
+      { x: 1720, y: 880, angle: Math.PI }
+    ];
+
+    gameState.current.missiles = playerConfigs.map((config, index) => ({
+      id: config.gamepadIndex, 
+      color: config.color,
+      x: spawnPoints[index].x,
+      y: spawnPoints[index].y,
+      angle: spawnPoints[index].angle,
+      velocity: 6, // Pixels per frame
+      active: true,
+      radius: 15, 
+    }));
+  }, [playerConfigs]);
 
   const updateLoop = (time) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     
-    // Time delta (helps keep movement consistent if frame rate dips)
     const deltaTime = (time - gameState.current.lastTime) / 1000;
     gameState.current.lastTime = time;
 
-    // Clear the screen for the new frame
+    // Clear and draw background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw background 
     ctx.fillStyle = '#111827'; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Poll Gamepads directly every frame
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const gamepads = navigator.getGamepads();
 
-    for (let i = 0; i < 4; i++) {
-      const pad = gamepads[i];
-      const missile = gameState.current.missiles[i];
+    // Update and draw each missile
+    gameState.current.missiles.forEach((missile) => {
+      if (!missile.active) return;
+
+      const pad = gamepads[missile.id];
 
       if (pad) {
-        missile.active = true;
-        
-        // 3. Extract L2 (6) and R2 (7) values (0.0 to 1.0)
+        // Read L2 and R2
         const l2 = pad.buttons[6]?.value || 0;
         const r2 = pad.buttons[7]?.value || 0;
 
-        // Turning speed scalar
-        const turnSpeed = 4.0; 
-        
-        // Update physics
+        const turnSpeed = 4.5; 
         missile.angle += (r2 - l2) * turnSpeed * deltaTime;
+
         missile.x += missile.velocity * Math.cos(missile.angle);
         missile.y += missile.velocity * Math.sin(missile.angle);
-
-        // Your custom wall collision and target logic goes here
+        
+        // Screen wrap
+        if (missile.x > canvas.width) missile.x = 0;
+        if (missile.x < 0) missile.x = canvas.width;
+        if (missile.y > canvas.height) missile.y = 0;
+        if (missile.y < 0) missile.y = canvas.height;
       }
 
-      // 4. Render the active missiles
-      if (missile.active) {
-        ctx.save();
-        ctx.translate(missile.x, missile.y);
-        ctx.rotate(missile.angle);
-        
-        // Draw the missile (a simple triangle)
-        ctx.fillStyle = missile.color;
-        ctx.beginPath();
-        ctx.moveTo(20, 0);
-        ctx.lineTo(-10, -10);
-        ctx.lineTo(-10, 10);
-        ctx.fill();
-        
-        ctx.restore();
-      }
-    }
+      ctx.save();
+      ctx.translate(missile.x, missile.y);
+      ctx.rotate(missile.angle);
+      
+      ctx.fillStyle = missile.color;
+      ctx.beginPath();
+      ctx.moveTo(25, 0); // Nose
+      ctx.lineTo(-15, -15); // Left wing
+      ctx.lineTo(-10, 0); // Engine block
+      ctx.lineTo(-15, 15); // Right wing
+      ctx.fill();
+      
+      ctx.restore();
+    });
 
-    // Schedule next frame
     requestRef.current = requestAnimationFrame(updateLoop);
   };
 
   useEffect(() => {
-    // Start the game loop when the component mounts
     requestRef.current = requestAnimationFrame(updateLoop);
-    
-    // Cleanup to prevent memory leaks if the component unmounts
     return () => cancelAnimationFrame(requestRef.current);
   }, []); 
 
   return (
-    // Simple full-screen layout for the map
     <div className="flex h-screen w-full items-center justify-center bg-black">
       <canvas
         ref={canvasRef}
         width={1920}
         height={1080}
-        className="max-h-full max-w-full border-2 border-gray-800 rounded-lg shadow-lg"
+        className="max-h-full max-w-full"
       />
     </div>
   );

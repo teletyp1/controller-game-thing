@@ -5,6 +5,7 @@ import MissileGame from './components/MissileGame';
 const App = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [connectedPads, setConnectedPads] = useState([]);
+  const [playerConfigs, setPlayerConfigs] = useState([]);
 
   useEffect(() => {
     const handleConnect = (e) => {
@@ -20,7 +21,6 @@ const App = () => {
     window.addEventListener("gamepadconnected", handleConnect);
     window.addEventListener("gamepaddisconnected", handleDisconnect);
 
-    // Check for already connected gamepads on mount
     const initialPads = Array.from(navigator.getGamepads()).filter(Boolean);
     if (initialPads.length > 0) setConnectedPads(initialPads);
 
@@ -30,16 +30,18 @@ const App = () => {
     };
   }, []);
 
-  // Conditional rendering: Show Lobby until "Start", then mount the Game
   return (
     <div className="min-h-screen bg-gray-900 text-white font-mono">
       {!isPlaying ? (
         <ControllerLobby 
           connectedPads={connectedPads} 
-          onStart={() => setIsPlaying(true)} 
+          onStart={(mappings) => {
+            setPlayerConfigs(mappings);
+            setIsPlaying(true);
+          }} 
         />
       ) : (
-        <MissileGame />
+        <MissileGame playerConfigs={playerConfigs} />
       )}
     </div>
   );
