@@ -5,7 +5,6 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   const [playerMappings, setPlayerMappings] = useState([]); 
   const requestRef = useRef();
   
-  // The colors matching the physical controller LEDs (when on Linux)
   const missileColors = ['#ef4444', '#10b981', '#eab308', '#f97316']; 
   const colorNames = ['RED', 'GREEN', 'YELLOW', 'ORANGE'];
 
@@ -18,7 +17,6 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
       for (let i = 0; i < 4; i++) {
         const pad = pads[i];
         
-        // If a gamepad exists and L2 is fully squeezed
         if (pad && pad.buttons[6]?.value > 0.8) {
           const alreadyMapped = playerMappings.some(m => m.gamepadIndex === pad.index);
           
@@ -40,6 +38,7 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
     return () => cancelAnimationFrame(requestRef.current);
   }, [calibratingIndex, playerMappings]);
 
+  const canStart = playerMappings.length > 0;
   const isFullyCalibrated = playerMappings.length === 4;
 
   return (
@@ -54,14 +53,13 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
             <h2 className="text-4xl font-bold mb-2">
               SQUEEZE L2 ON THE <span style={{ color: missileColors[calibratingIndex] }}>{colorNames[calibratingIndex]}</span> CONTROLLER
             </h2>
-            <p className="text-gray-400 mt-4">Hardware mapping in progress...</p>
           </div>
         ) : (
-          <h2 className="text-4xl font-bold text-emerald-400">ALL HARDWARE LOCKED</h2>
+          <h2 className="text-4xl font-bold text-emerald-400">MAX HARDWARE LOCKED</h2>
         )}
       </div>
 
-      <div className="flex gap-4 mb-12">
+      <div className="flex gap-4 mb-12 min-h-[120px]">
         {playerMappings.map((player, idx) => (
           <div key={idx} className="p-6 border-2 border-gray-700 rounded bg-gray-800 w-48">
             <p className="font-bold text-lg" style={{ color: player.color }}>
@@ -72,12 +70,12 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
         ))}
       </div>
 
-      {isFullyCalibrated && (
+      {canStart && (
          <button
          onClick={() => onStart(playerMappings)}
          className="px-12 py-6 bg-red-600 hover:bg-red-500 text-white font-bold rounded text-3xl transition-colors shadow-lg"
        >
-         INITIATE LAUNCH
+         START WITH {playerMappings.length} PLAYER{playerMappings.length > 1 ? 'S' : ''}
        </button>
       )}
     </div>
