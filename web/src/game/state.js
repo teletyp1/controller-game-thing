@@ -3,17 +3,16 @@ import { levels } from './levels';
 export const initGameState = (levelIndex, playerConfigs) => {
   const levelData = levels[levelIndex];
   
-  // Calculate the scaled time limit based on player count
-  // We use Math.max(1, length) just to be safe from divide-by-zero errors
   const playerCount = Math.max(1, playerConfigs.length);
   const scaledTimeLimit = levelData.timeLimit / playerCount;
 
   return {
     levelIndex,
-    phase: 'READY_CHECK', 
-    phaseTimer: 0, 
-    timeRemaining: scaledTimeLimit, // Use the scaled time
-    timeLimit: scaledTimeLimit,     // Store the scaled time for the HUD percentage
+    phase: 'COUNTDOWN', // Instantly go into the buffer phase
+    phaseTimer: 4.0,    // Increased to 4 seconds to give players a breather
+    isPaused: false,
+    timeRemaining: scaledTimeLimit,
+    timeLimit: scaledTimeLimit,
     cannon: levelData.cannon,
     obstacles: levelData.obstacles,
     targets: levelData.targets.map(t => ({ ...t, active: true })), 
@@ -24,14 +23,13 @@ export const initGameState = (levelIndex, playerConfigs) => {
       x: levelData.cannon.x,
       y: levelData.cannon.y,
       angle: levelData.cannon.angle,
-      velocity: 600,
-      radius: 30,
+      velocity: 360,
+      radius: 15,
       status: 'WAITING', 
-      isPaused: false,
       nextStatus: null, 
       explosionRadius: 0,
-      respawnTimer: 0,
-      isReady: false 
+      respawnTimer: 0
+      // isReady is no longer needed in the game state!
     }))
   };
 };

@@ -100,13 +100,13 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
       }
     });
   }
+// ... (Your existing render logic for Background through Debug overlay)
 
   // 7. Classic Arcade HUD
   const hudHeight = 70;
   const hudY = height - hudHeight;
   const hudWidth = width / Math.max(state.missiles.length, 1);
 
-  // Top border for the HUD area
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 4;
   ctx.beginPath();
@@ -117,27 +117,27 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
   state.missiles.forEach((m, i) => {
     const startX = hudWidth * i;
     
-    // Fill background for this player slot
     ctx.fillStyle = '#000000';
     ctx.fillRect(startX, hudY + 2, hudWidth, hudHeight - 2);
 
     let statusText = '';
     let textColor = m.color;
 
-    if (state.phase === 'READY_CHECK' || state.phase === 'COUNTDOWN') {
-      statusText = m.isReady ? 'READY' : 'PRESS X';
+    // Simplified HUD text logic
+    if (state.phase === 'COUNTDOWN') {
+      statusText = 'STANDBY';
+      textColor = '#ffffff';
     } else {
       if (['WAITING', 'ALIVE', 'EXPLODING'].includes(m.status)) {
         statusText = m.status === 'WAITING' ? 'PRESS X' : 'ACTIVE';
       } else if (m.status === 'DEAD') {
         statusText = 'GAME OVER';
-        textColor = '#555555'; // Dark gray
+        textColor = '#555555'; 
       } else if (m.status === 'RESPAWNING') {
         statusText = `RESPAWN ${Math.ceil(m.respawnTimer)}`;
       }
     }
 
-    // Draw slot separator
     if (i > 0) {
       ctx.beginPath();
       ctx.moveTo(startX, hudY);
@@ -145,28 +145,25 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
       ctx.stroke();
     }
 
-    // Player Label (P1, P2)
     ctx.fillStyle = textColor;
     ctx.font = 'bold 24px Courier New, monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(`P${i + 1}`, startX + 20, hudY + (hudHeight / 2));
 
-    // Player Status Text
     ctx.textAlign = 'right';
     ctx.fillText(statusText, startX + hudWidth - 20, hudY + (hudHeight / 2));
   });
 
-  // 8. Blocky Time Bar (Top)
+  // 8. Blocky Time Bar
   if (state.timeRemaining > 0) {
     const timePercentage = state.timeRemaining / state.timeLimit;
-    ctx.fillStyle = timePercentage < 0.2 ? '#ff0000' : '#00ff00'; // Turns red at 20%
+    ctx.fillStyle = timePercentage < 0.2 ? '#ff0000' : '#00ff00';
     ctx.fillRect(0, 0, width * timePercentage, 16);
   }
 
-  // 9. Overlay Screens (Standard arcade phrasing)
+  // 9. Overlay Screens
   if (state.phase !== 'PLAYING') {
-    // Semi-transparent black background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
     ctx.fillRect(0, 0, width, height);
     
@@ -177,12 +174,9 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
     let subText = '';
     ctx.fillStyle = '#ffffff';
 
-    if (state.phase === 'READY_CHECK') {
-      centerText = 'WAITING FOR PLAYERS';
-    } 
-    else if (state.phase === 'COUNTDOWN') {
-      centerText = Math.ceil(state.phaseTimer).toString();
-      ctx.font = 'bold 120px Courier New, monospace';
+    if (state.phase === 'COUNTDOWN') {
+      centerText = `GET READY: ${Math.ceil(state.phaseTimer)}`;
+      ctx.fillStyle = '#00ffff'; 
     } 
     else if (state.phase === 'LEVEL_CLEARED') {
       centerText = 'LEVEL CLEAR';
@@ -191,7 +185,7 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
     else if (state.phase === 'LEVEL_FAILED') {
       centerText = 'GAME OVER';
       ctx.fillStyle = '#ff0000';
-      subText = 'INSERT COIN'; // A nod to the aesthetic
+      subText = 'INSERT COIN'; 
     }
     
     ctx.fillText(centerText, width / 2, height / 2);
@@ -209,8 +203,6 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
     ctx.font = 'bold 32px Courier New, monospace';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
-    
-    // Draw in the top right corner, avoiding the time bar
     ctx.fillText('PAUSED', width - 20, 30);
   }
 };

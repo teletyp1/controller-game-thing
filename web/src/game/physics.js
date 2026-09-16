@@ -1,27 +1,8 @@
 export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHeight) => {
-  // 1. Handle Pre-Game Phases
+  // 1. Check for Pause
   if (state.isPaused) return;
-  if (state.phase === 'READY_CHECK') {
-    let allReady = true;
-    
-    state.missiles.forEach(m => {
-      const pad = gamepads[m.id];
-      // Button 0 (X) to Ready Up
-      if (pad && (pad.buttons[0]?.pressed || pad.buttons[0]?.value > 0.5)) {
-        m.isReady = true;
-      }
-      if (!m.isReady) allReady = false;
-    });
 
-    // If everyone pressed X, start the countdown buffer
-    if (allReady && state.missiles.length > 0) {
-      state.phase = 'COUNTDOWN';
-      state.phaseTimer = 1.5; 
-    }
-    return; // Skip physics
-  }
-
-  // 2. Countdown Buffer (Prevents accidental instant-launches)
+  // 2. Handle Pre-Game Phase (4-second breather)
   if (state.phase === 'COUNTDOWN') {
     state.phaseTimer -= deltaTime;
     if (state.phaseTimer <= 0) {
@@ -39,13 +20,13 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
   // --- GAME IS PLAYING BELOW ---
   state.timeRemaining -= deltaTime;
 
-  // Process Input & Movement
+  // 4. Process Input & Movement
   state.missiles.forEach(m => {
     const pad = gamepads[m.id];
     if (!pad) return;
 
     if (m.status === 'WAITING') {
-      // Now Button 0 (X) launches them from the cannon
+      // Button 0 (X) launches them from the cannon
       if (pad.buttons[0]?.pressed || pad.buttons[0]?.value > 0.5) {
         m.status = 'ALIVE';
         m.x = state.cannon.x;
@@ -56,14 +37,14 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
       const l2 = pad.buttons[6]?.value || 0;
       const r2 = pad.buttons[7]?.value || 0;
       
-      // Both turning AND moving are now locked to real-world time
+      // Both turning AND moving are locked to real-world time (deltaTime)
       m.angle += (r2 - l2) * 4.5 * deltaTime;
-      m.x += m.velocity * Math.cos(m.angle) * deltaTime; // <-- Add * deltaTime here
-      m.y += m.velocity * Math.sin(m.angle) * deltaTime; // <-- Add * deltaTime here
+      m.x += m.velocity * Math.cos(m.angle) * deltaTime;
+      m.y += m.velocity * Math.sin(m.angle) * deltaTime;
     }
   });
 
-  // Process Collisions
+  // 5. Process Collisions
   for (let i = 0; i < state.missiles.length; i++) {
     const m1 = state.missiles[i];
     if (m1.status !== 'ALIVE') continue;
@@ -72,10 +53,12 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
     let hitTargetRef = null;
     let hitPlayerRef = null;
 
+    // Check Map Boundaries
     if (m1.x < 0 || m1.x > canvasWidth || m1.y < 0 || m1.y > canvasHeight) {
       hitWall = true;
     }
 
+    // Check Obstacles
     if (!hitWall) {
       for (const obs of state.obstacles) {
         const testX = Math.max(obs.x, Math.min(m1.x, obs.x + obs.width));
@@ -88,6 +71,7 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
       }
     }
 
+    // Check Targets
     if (!hitWall) {
       for (const target of state.targets) {
         if (!target.active) continue;
@@ -99,6 +83,7 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
       }
     }
 
+    // Check Other Players
     if (!hitWall && !hitTargetRef) {
       for (let j = i + 1; j < state.missiles.length; j++) {
         const m2 = state.missiles[j];
@@ -111,23 +96,46 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
       }
     }
 
+    // Apply Collision Results & Rumble
     if (hitWall) {
       m1.status = 'EXPLODING';
       m1.nextStatus = 'DEAD'; 
+      
+      const pad1 = gamepads[m1.id];
+      if (pad1 && pad1.vibrationActuator) {
+        pad1.vibrationActuator.playEffect("dual-rumble", { duration: 300, weakMagnitude: 1.0, strongMagnitude: 1.0 }).catch(() => {});
+      }
+      
     } else if (hitPlayerRef) {
       m1.status = 'EXPLODING';
       m1.nextStatus = 'DEAD'; 
       hitPlayerRef.status = 'EXPLODING';
       hitPlayerRef.nextStatus = 'DEAD';
+      
+      const pad1 = gamepads[m1.id];
+      const pad2 = gamepads[hitPlayerRef.id];
+      
+      if (pad1 && pad1.vibrationActuator) {
+        pad1.vibrationActuator.playEffect("dual-rumble", { duration: 300, weakMagnitude: 1.0, strongMagnitude: 1.0 }).catch(() => {});
+      }
+      if (pad2 && pad2.vibrationActuator) {
+        pad2.vibrationActuator.playEffect("dual-rumble", { duration: 300, weakMagnitude: 1.0, strongMagnitude: 1.0 }).catch(() => {});
+      }
+      
     } else if (hitTargetRef) {
       hitTargetRef.active = false;
       m1.status = 'EXPLODING';
       m1.nextStatus = 'RESPAWNING'; 
       m1.respawnTimer = 2.0; 
+      
+      const pad1 = gamepads[m1.id];
+      if (pad1 && pad1.vibrationActuator) {
+        pad1.vibrationActuator.playEffect("dual-rumble", { duration: 150, weakMagnitude: 0.5, strongMagnitude: 0.0 }).catch(() => {});
+      }
     }
   }
 
-  // Update Explosions & State Machine
+  // 6. Update Explosions & State Machine
   state.missiles.forEach(m => {
     if (m.status === 'EXPLODING') {
       m.explosionRadius += 300 * deltaTime;
@@ -143,7 +151,7 @@ export const updatePhysics = (state, gamepads, deltaTime, canvasWidth, canvasHei
     }
   });
 
-  // Win/Loss Conditions
+  // 7. Win/Loss Conditions
   const activeTargets = state.targets.filter(t => t.active).length;
   const canContinue = state.missiles.some(m => 
     ['ALIVE', 'WAITING', 'RESPAWNING'].includes(m.status) || 
