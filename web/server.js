@@ -27,8 +27,7 @@ app.post('/api/lightbar', (req, res) => {
     const leds = fs.readdirSync(sysfsPath);
     
     const redLeds = leds.filter(dir => 
-      dir.endsWith(':red') && 
-      (dir.includes('054C') || dir.toLowerCase().includes('sony') || dir.toLowerCase().includes('playstation'))
+      dir.endsWith(':red')
     );
 
     // Sort chronologically to match the player join order
