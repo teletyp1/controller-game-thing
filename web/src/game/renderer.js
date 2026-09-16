@@ -1,191 +1,216 @@
 export const renderFrame = (ctx, state, width, height, isDebug = false) => {
-  ctx.fillStyle = '#111827';
+  // 1. Pure Arcade Black Background
+  ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, width, height);
 
-  ctx.fillStyle = '#4b5563';
-  ctx.beginPath();
-  ctx.arc(state.cannon.x, state.cannon.y, 35, 0, Math.PI * 2);
-  ctx.fill();
+  // Set classic vector styles
+  ctx.lineJoin = 'miter';
+  ctx.lineCap = 'square';
+
+  // 2. The Cannon (Simple blocky design)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(state.cannon.x - 20, state.cannon.y - 20, 40, 40);
 
   ctx.save();
   ctx.translate(state.cannon.x, state.cannon.y);
   ctx.rotate(state.cannon.angle);
-  ctx.fillStyle = '#6b7280';
-  ctx.fillRect(0, -15, 60, 30);
+  ctx.fillStyle = '#aaaaaa';
+  ctx.fillRect(0, -10, 50, 20);
   ctx.restore();
 
+  // 3. Obstacles (Vector wireframe style)
   state.obstacles.forEach(obs => {
-    ctx.fillStyle = obs.color;
+    ctx.fillStyle = '#000000';
     ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-    ctx.strokeStyle = '#4b5563';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#00ffff'; // Neon cyan wireframe
+    ctx.lineWidth = 4;
     ctx.strokeRect(obs.x, obs.y, obs.width, obs.height);
   });
 
+  // 4. Targets (Thick retro squares instead of smooth circles for aesthetic)
   state.targets.forEach(target => {
     if (!target.active) return;
-    ctx.beginPath();
-    ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#ef4444';
-    ctx.fill();
-    ctx.strokeStyle = '#fca5a5';
-    ctx.lineWidth = 4;
-    ctx.stroke();
+    const size = target.radius * 2;
+    ctx.strokeStyle = '#ff0055'; // Neon pink/red
+    ctx.lineWidth = 6;
+    ctx.strokeRect(target.x - target.radius, target.y - target.radius, size, size);
+    
+    // Inner pulse core
+    ctx.fillStyle = '#ff0055';
+    ctx.fillRect(target.x - 5, target.y - 5, 10, 10);
   });
 
+  // 5. Missiles & Explosions
   state.missiles.forEach(m => {
     if (m.status === 'ALIVE') {
       ctx.save();
       ctx.translate(m.x, m.y);
       ctx.rotate(m.angle);
       
+      // Simple sharp chevron
       ctx.fillStyle = m.color;
       ctx.beginPath();
-      ctx.moveTo(25, 0); 
+      ctx.moveTo(20, 0); 
       ctx.lineTo(-15, -15); 
-      ctx.lineTo(-10, 0); 
+      ctx.lineTo(-5, 0); 
       ctx.lineTo(-15, 15); 
       ctx.fill();
       ctx.restore();
     } else if (m.status === 'EXPLODING') {
+      // Vector expanding ring explosion
+      ctx.strokeStyle = m.color;
+      ctx.lineWidth = Math.max(1, 10 - (m.explosionRadius / 10)); // Ring gets thinner as it expands
       ctx.beginPath();
       ctx.arc(m.x, m.y, m.explosionRadius, 0, Math.PI * 2);
-      ctx.fillStyle = `${m.color}80`; 
-      ctx.fill();
+      ctx.stroke();
     }
   });
 
-  // --- DEBUG MODE RENDER OVERLAY ---
+  // 6. Debug Overlay
   if (isDebug) {
-    ctx.font = '14px monospace';
+    ctx.font = '14px Courier New, monospace';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'bottom';
     
-    // Outline text for readability
     const drawDebugText = (text, x, y, color = '#00ff00') => {
       ctx.strokeStyle = '#000000';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
       ctx.strokeText(text, x, y);
       ctx.fillStyle = color;
       ctx.fillText(text, x, y);
     };
 
-    // Cannon
     drawDebugText(`CANNON: ${Math.round(state.cannon.x)},${Math.round(state.cannon.y)}`, state.cannon.x + 40, state.cannon.y - 40);
 
-    // Obstacles
     state.obstacles.forEach(obs => {
-      drawDebugText(`[${obs.width}x${obs.height}]`, obs.x + 5, obs.y + 20, '#facc15'); // Yellow
-      drawDebugText(`${Math.round(obs.x)},${Math.round(obs.y)}`, obs.x + 5, obs.y + 35, '#facc15');
+      drawDebugText(`[${obs.width}x${obs.height}]`, obs.x + 5, obs.y + 20, '#ffff00');
+      drawDebugText(`${Math.round(obs.x)},${Math.round(obs.y)}`, obs.x + 5, obs.y + 35, '#ffff00');
     });
 
-    // Targets
     state.targets.forEach(t => {
       if (t.active) {
-        drawDebugText(`r:${t.radius}`, t.x + t.radius + 5, t.y - 15, '#38bdf8'); // Light Blue
-        drawDebugText(`${Math.round(t.x)},${Math.round(t.y)}`, t.x + t.radius + 5, t.y, '#38bdf8');
+        drawDebugText(`r:${t.radius}`, t.x + t.radius + 5, t.y - 15, '#00ffff');
+        drawDebugText(`${Math.round(t.x)},${Math.round(t.y)}`, t.x + t.radius + 5, t.y, '#00ffff');
       }
     });
 
-    // Missiles
     state.missiles.forEach(m => {
       if (m.status === 'ALIVE' || m.status === 'WAITING') {
         drawDebugText(`${Math.round(m.x)},${Math.round(m.y)}`, m.x + 25, m.y + 25, m.color);
       }
     });
   }
-  // ---------------------------------
 
-  // HUD
-  const hudHeight = 60;
+  // 7. Classic Arcade HUD
+  const hudHeight = 70;
   const hudY = height - hudHeight;
   const hudWidth = width / Math.max(state.missiles.length, 1);
 
+  // Top border for the HUD area
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.moveTo(0, hudY);
+  ctx.lineTo(width, hudY);
+  ctx.stroke();
+
   state.missiles.forEach((m, i) => {
     const startX = hudWidth * i;
-    ctx.fillStyle = '#1f2937'; 
-    ctx.fillRect(startX, hudY, hudWidth, hudHeight);
+    
+    // Fill background for this player slot
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(startX, hudY + 2, hudWidth, hudHeight - 2);
 
-    let fillPercentage = 0;
     let statusText = '';
-    let textColor = '#ffffff';
+    let textColor = m.color;
 
     if (state.phase === 'READY_CHECK' || state.phase === 'COUNTDOWN') {
-      fillPercentage = m.isReady ? 1.0 : 0.0;
-      statusText = m.isReady ? 'READY' : 'PRESS [X] TO READY';
-      textColor = m.isReady ? '#000000' : '#ffffff';
+      statusText = m.isReady ? 'READY' : 'PRESS X';
     } else {
       if (['WAITING', 'ALIVE', 'EXPLODING'].includes(m.status)) {
-        fillPercentage = 1.0; 
-        statusText = m.status === 'WAITING' ? '[X] LAUNCH' : 'IN FLIGHT';
-        textColor = '#000000'; 
+        statusText = m.status === 'WAITING' ? 'PRESS X' : 'ACTIVE';
       } else if (m.status === 'DEAD') {
-        fillPercentage = 0.0;
-        statusText = 'OFFLINE';
-        textColor = '#6b7280'; 
+        statusText = 'GAME OVER';
+        textColor = '#555555'; // Dark gray
       } else if (m.status === 'RESPAWNING') {
-        fillPercentage = Math.max(0, (2.0 - m.respawnTimer) / 2.0);
-        statusText = 'RELOADING...';
+        statusText = `RESPAWN ${Math.ceil(m.respawnTimer)}`;
       }
     }
 
-    if (fillPercentage > 0) {
-      ctx.fillStyle = m.color;
-      ctx.fillRect(startX, hudY, hudWidth * fillPercentage, hudHeight);
+    // Draw slot separator
+    if (i > 0) {
+      ctx.beginPath();
+      ctx.moveTo(startX, hudY);
+      ctx.lineTo(startX, height);
+      ctx.stroke();
     }
 
-    ctx.strokeStyle = '#111827';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(startX, hudY, hudWidth, hudHeight);
+    // Player Label (P1, P2)
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 24px monospace';
-    ctx.textAlign = 'center';
+    ctx.font = 'bold 24px Courier New, monospace';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(statusText, startX + (hudWidth / 2), hudY + (hudHeight / 2));
+    ctx.fillText(`P${i + 1}`, startX + 20, hudY + (hudHeight / 2));
+
+    // Player Status Text
+    ctx.textAlign = 'right';
+    ctx.fillText(statusText, startX + hudWidth - 20, hudY + (hudHeight / 2));
   });
 
+  // 8. Blocky Time Bar (Top)
   if (state.timeRemaining > 0) {
     const timePercentage = state.timeRemaining / state.timeLimit;
-    ctx.fillStyle = '#3b82f6'; 
-    ctx.fillRect(0, 0, width * timePercentage, 12);
+    ctx.fillStyle = timePercentage < 0.2 ? '#ff0000' : '#00ff00'; // Turns red at 20%
+    ctx.fillRect(0, 0, width * timePercentage, 16);
   }
 
-  // Phase Overlays
+  // 9. Overlay Screens (Standard arcade phrasing)
   if (state.phase !== 'PLAYING') {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    // Semi-transparent black background
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
     ctx.fillRect(0, 0, width, height);
     
-    ctx.fillStyle = (state.phase === 'LEVEL_CLEARED' || state.phase === 'COUNTDOWN') ? '#10b981' : '#ef4444';
-    ctx.font = 'bold 80px monospace';
+    ctx.font = 'bold 80px Courier New, monospace';
     ctx.textAlign = 'center';
     
     let centerText = '';
-    if (state.phase === 'READY_CHECK') centerText = 'AWAITING AUTHORIZATION';
-    else if (state.phase === 'COUNTDOWN') centerText = `LAUNCH IN ${Math.ceil(state.phaseTimer)}`;
-    else if (state.phase === 'LEVEL_CLEARED') centerText = 'NETWORK BREACHED';
-    else if (state.phase === 'LEVEL_FAILED') centerText = 'SYSTEM FAILURE';
+    let subText = '';
+    ctx.fillStyle = '#ffffff';
+
+    if (state.phase === 'READY_CHECK') {
+      centerText = 'WAITING FOR PLAYERS';
+    } 
+    else if (state.phase === 'COUNTDOWN') {
+      centerText = Math.ceil(state.phaseTimer).toString();
+      ctx.font = 'bold 120px Courier New, monospace';
+    } 
+    else if (state.phase === 'LEVEL_CLEARED') {
+      centerText = 'LEVEL CLEAR';
+      ctx.fillStyle = '#00ff00';
+    } 
+    else if (state.phase === 'LEVEL_FAILED') {
+      centerText = 'GAME OVER';
+      ctx.fillStyle = '#ff0000';
+      subText = 'INSERT COIN'; // A nod to the aesthetic
+    }
     
     ctx.fillText(centerText, width / 2, height / 2);
-  };
+    
+    if (subText) {
+      ctx.font = 'bold 40px Courier New, monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(subText, width / 2, (height / 2) + 80);
+    }
+  }
+
+  // 10. Pause Overlay
   if (state.isPaused) {
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 24px monospace';
+    ctx.font = 'bold 32px Courier New, monospace';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     
-    // Add a slight drop shadow so it stands out against any map elements
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    
-    // Draw in the top right corner, just below the blue time bar
-    ctx.fillText('SYSTEM PAUSED - PRESS [P] TO RESUME', width - 20, 20);
-    
-    // Reset shadow so it doesn't affect the next frame
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-  };
+    // Draw in the top right corner, avoiding the time bar
+    ctx.fillText('PAUSED', width - 20, 30);
+  }
 };

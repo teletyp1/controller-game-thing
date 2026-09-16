@@ -31,7 +31,8 @@ const App = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-mono">
+    // Enforce pure black background and classic monospace font globally
+    <div className="min-h-screen bg-black text-white font-mono uppercase select-none">
       {!isPlaying ? (
         <ControllerLobby 
           connectedPads={connectedPads} 

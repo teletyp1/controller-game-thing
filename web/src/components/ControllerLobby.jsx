@@ -5,8 +5,8 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   const [playerMappings, setPlayerMappings] = useState([]); 
   const requestRef = useRef();
   
-  const missileColors = ['#ef4444', '#10b981', '#eab308', '#f97316']; 
-  const colorNames = ['RED', 'GREEN', 'YELLOW', 'ORANGE'];
+  const missileColors = ['#ff0000', '#00ff00', '#ffff00', '#ff8800']; 
+  const colorNames = ['P1 (RED)', 'P2 (GREEN)', 'P3 (YELLOW)', 'P4 (ORANGE)'];
 
   useEffect(() => {
     if (calibratingIndex >= 4) return;
@@ -42,42 +42,52 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   const isFullyCalibrated = playerMappings.length === 4;
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white font-mono text-center">
-      <h1 className="text-5xl font-bold mb-8 text-emerald-400 tracking-widest">
-        MISSILE COMMAND: CALIBRATION
-      </h1>
+    <div className="flex flex-col items-center justify-center h-screen w-full bg-black">
       
-      <div className="mb-12 h-32 flex flex-col justify-center items-center">
-        {!isFullyCalibrated ? (
-          <div className="animate-pulse">
-            <h2 className="text-4xl font-bold mb-2">
-              SQUEEZE L2 ON THE <span style={{ color: missileColors[calibratingIndex] }}>{colorNames[calibratingIndex]}</span> CONTROLLER
-            </h2>
-          </div>
-        ) : (
-          <h2 className="text-4xl font-bold text-emerald-400">MAX HARDWARE LOCKED</h2>
+      <h1 className="text-7xl font-bold mb-16 text-white tracking-widest border-b-4 border-white pb-4">
+        CO-OP STRIKE
+      </h1>
+
+      <div className="flex gap-8 mb-16 w-full max-w-6xl px-8">
+        {[0, 1, 2, 3].map((slotIndex) => {
+          const mappedPlayer = playerMappings[slotIndex];
+          
+          if (mappedPlayer) {
+            return (
+              <div key={slotIndex} className="flex-1 flex flex-col items-center justify-center p-8 border-4 bg-gray-900" style={{ borderColor: mappedPlayer.color }}>
+                <span className="text-3xl font-bold" style={{ color: mappedPlayer.color }}>{colorNames[slotIndex]}</span>
+                <span className="text-xl mt-4 text-white">JOINED</span>
+              </div>
+            );
+          }
+
+          if (slotIndex === calibratingIndex) {
+            return (
+              <div key={slotIndex} className="flex-1 flex flex-col items-center justify-center p-8 border-4 border-dashed border-gray-500 bg-black animate-pulse">
+                <span className="text-2xl font-bold text-white text-center">PRESS L2 TO JOIN</span>
+              </div>
+            );
+          }
+
+          return (
+            <div key={slotIndex} className="flex-1 flex flex-col items-center justify-center p-8 border-4 border-gray-800 bg-black">
+              <span className="text-xl font-bold text-gray-700">WAITING...</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="h-24">
+        {canStart && (
+          <button
+            onClick={() => onStart(playerMappings)}
+            className="px-12 py-4 border-4 border-white text-white text-3xl font-bold hover:bg-white hover:text-black transition-colors"
+          >
+            PRESS START ({playerMappings.length}P)
+          </button>
         )}
       </div>
 
-      <div className="flex gap-4 mb-12 min-h-[120px]">
-        {playerMappings.map((player, idx) => (
-          <div key={idx} className="p-6 border-2 border-gray-700 rounded bg-gray-800 w-48">
-            <p className="font-bold text-lg" style={{ color: player.color }}>
-              {colorNames[idx]} MISSILE
-            </p>
-            <p className="text-sm text-gray-400 mt-2">Locked to Slot {player.gamepadIndex}</p>
-          </div>
-        ))}
-      </div>
-
-      {canStart && (
-         <button
-         onClick={() => onStart(playerMappings)}
-         className="px-12 py-6 bg-red-600 hover:bg-red-500 text-white font-bold rounded text-3xl transition-colors shadow-lg"
-       >
-         START WITH {playerMappings.length} PLAYER{playerMappings.length > 1 ? 'S' : ''}
-       </button>
-      )}
     </div>
   );
 };
