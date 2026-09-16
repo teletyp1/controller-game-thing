@@ -4,7 +4,36 @@ import fs from 'fs';
 const app = express();
 app.use(express.json());
 app.use(express.static('dist'));
+app.post('/api/lightbar/all', (req, res) => {
+  if (process.platform === 'win32') return res.sendStatus(200);
 
+  const color = req.body?.color || '#ffffff';
+
+  try {
+    const sysfsPath = '/sys/class/leds';
+    if (!fs.existsSync(sysfsPath)) return res.sendStatus(200);
+
+    const leds = fs.readdirSync(sysfsPath);
+    const redLeds = leds.filter(dir => dir.endsWith(':red'));
+
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    redLeds.forEach(dir => {
+      const baseName = dir.replace(':red', '');
+      try {
+        fs.writeFileSync(`${sysfsPath}/${baseName}:red/brightness`, r.toString());
+        fs.writeFileSync(`${sysfsPath}/${baseName}:green/brightness`, g.toString());
+        fs.writeFileSync(`${sysfsPath}/${baseName}:blue/brightness`, b.toString());
+      } catch (e) {}
+    });
+
+    res.sendStatus(200);
+  } catch (err) {
+    res.sendStatus(200);
+  }
+});
 app.post('/api/lightbar', (req, res) => {
   if (process.platform === 'win32') return res.sendStatus(200);
 

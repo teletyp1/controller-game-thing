@@ -9,6 +9,13 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   const colorNames = ['P1 (RED)', 'P2 (GREEN)', 'P3 (YELLOW)', 'P4 (BLUE)'];
 
   useEffect(() => {
+    fetch('/api/lightbar/all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ color: '#ffffff' }),
+    }).catch(() => {});
+  }, []);
+  useEffect(() => {
     if (playerMappings.length > 0 && playerMappings.every(p => p.isReady)) {
       onStart(playerMappings);
     }
