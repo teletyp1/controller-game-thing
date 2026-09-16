@@ -163,37 +163,63 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
   }
 
   // 9. Overlay Screens
+  // 9. Overlay Screens (Arcade vector styling)
   if (state.phase !== 'PLAYING') {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.88)';
     ctx.fillRect(0, 0, width, height);
     
-    ctx.font = 'bold 80px Courier New, monospace';
-    ctx.textAlign = 'center';
-    
-    let centerText = '';
-    let subText = '';
-    ctx.fillStyle = '#ffffff';
+    const centerX = width / 2;
+    const centerY = height / 2;
 
     if (state.phase === 'COUNTDOWN') {
-      centerText = `GET READY: ${Math.ceil(state.phaseTimer)}`;
-      ctx.fillStyle = '#00ffff'; 
+      ctx.font = 'bold 90px Courier New, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#00ffff';
+      ctx.fillText(`GET READY: ${Math.ceil(state.phaseTimer)}`, centerX, centerY);
     } 
     else if (state.phase === 'LEVEL_CLEARED') {
-      centerText = 'LEVEL CLEAR';
+      ctx.textAlign = 'center';
+      
+      // Title
+      ctx.font = 'bold 70px Courier New, monospace';
       ctx.fillStyle = '#00ff00';
+      ctx.fillText('LEVEL CLEAR', centerX, centerY - 100);
+
+      // Score Board Card
+      ctx.font = 'bold 36px Courier New, monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`TIME BONUS: +${state.tallyLevelScore}`, centerX, centerY);
+
+      ctx.fillStyle = '#ffff00';
+      ctx.fillText(`TOTAL SCORE: ${state.tallyTotalScore}`, centerX, centerY + 60);
+    } 
+    else if (state.phase === 'GAME_COMPLETED') {
+      ctx.textAlign = 'center';
+
+      // Victory Title
+      ctx.font = 'bold 75px Courier New, monospace';
+      ctx.fillStyle = '#00ffff';
+      ctx.fillText('MISSION COMPLETE', centerX, centerY - 120);
+
+      // Final Total
+      ctx.font = 'bold 45px Courier New, monospace';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(`FINAL SCORE: ${state.totalScore}`, centerX, centerY - 20);
+
+      // Prompt (Subtle blink)
+      ctx.font = 'bold 28px Courier New, monospace';
+      ctx.fillStyle = Math.floor(Date.now() / 500) % 2 === 0 ? '#00ff00' : '#ffffff';
+      ctx.fillText('PRESS [X] OR [SPACE] TO RETURN TO LOBBY', centerX, centerY + 80);
     } 
     else if (state.phase === 'LEVEL_FAILED') {
-      centerText = 'GAME OVER';
+      ctx.textAlign = 'center';
+      ctx.font = 'bold 80px Courier New, monospace';
       ctx.fillStyle = '#ff0000';
-      subText = 'INSERT COIN'; 
-    }
-    
-    ctx.fillText(centerText, width / 2, height / 2);
-    
-    if (subText) {
-      ctx.font = 'bold 40px Courier New, monospace';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(subText, width / 2, (height / 2) + 80);
+      ctx.fillText('GAME OVER', centerX, centerY - 30);
+      
+      ctx.font = 'bold 36px Courier New, monospace';
+      ctx.fillStyle = '#888888';
+      ctx.fillText('RETRYING...', centerX, centerY + 50);
     }
   }
 

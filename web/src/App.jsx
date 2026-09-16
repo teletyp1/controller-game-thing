@@ -31,7 +31,6 @@ const App = () => {
   }, []);
 
   return (
-    // Enforce pure black background and classic monospace font globally
     <div className="min-h-screen bg-black text-white font-mono uppercase select-none">
       {!isPlaying ? (
         <ControllerLobby 
@@ -42,7 +41,10 @@ const App = () => {
           }} 
         />
       ) : (
-        <MissileGame playerConfigs={playerConfigs} />
+        <MissileGame 
+          playerConfigs={playerConfigs} 
+          onExit={() => setIsPlaying(false)}
+        />
       )}
     </div>
   );

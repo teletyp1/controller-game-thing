@@ -1,6 +1,6 @@
 import { levels } from './levels';
 
-export const initGameState = (levelIndex, playerConfigs) => {
+export const initGameState = (levelIndex, playerConfigs, runningTotalScore = 0) => {
   const levelData = levels[levelIndex];
   
   const playerCount = Math.max(1, playerConfigs.length);
@@ -8,14 +8,20 @@ export const initGameState = (levelIndex, playerConfigs) => {
 
   return {
     levelIndex,
-    phase: 'COUNTDOWN', // Instantly go into the buffer phase
-    phaseTimer: 4.0,    // Increased to 4 seconds to give players a breather
+    phase: 'COUNTDOWN',
+    phaseTimer: 4.0,
     isPaused: false,
     timeRemaining: scaledTimeLimit,
     timeLimit: scaledTimeLimit,
     cannon: levelData.cannon,
     obstacles: levelData.obstacles,
     targets: levelData.targets.map(t => ({ ...t, active: true })), 
+
+    // Score Tracking
+    totalScore: runningTotalScore,
+    levelScore: 0,
+    tallyLevelScore: 0,
+    tallyTotalScore: runningTotalScore,
     
     missiles: playerConfigs.map((config) => ({
       id: config.gamepadIndex,
@@ -29,7 +35,6 @@ export const initGameState = (levelIndex, playerConfigs) => {
       nextStatus: null, 
       explosionRadius: 0,
       respawnTimer: 0
-      // isReady is no longer needed in the game state!
     }))
   };
 };
