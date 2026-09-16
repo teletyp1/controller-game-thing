@@ -3,18 +3,18 @@ import React, { useState, useEffect, useRef } from 'react';
 const ControllerLobby = ({ connectedPads, onStart }) => {
   const [playerMappings, setPlayerMappings] = useState([]); 
   const requestRef = useRef();
-  const prevButtonState = useRef({}); // Tracks previous button state to prevent spamming
+  const prevButtonState = useRef({}); 
   
   const missileColors = ['#ff0000', '#00ff00', '#ffff00', '#ff8800']; 
   const colorNames = ['P1 (RED)', 'P2 (GREEN)', 'P3 (YELLOW)', 'P4 (ORANGE)'];
 
-  // Auto-start when at least 1 player is joined, and ALL joined players are ready
   useEffect(() => {
     if (playerMappings.length > 0 && playerMappings.every(p => p.isReady)) {
       onStart(playerMappings);
     }
   }, [playerMappings, onStart]);
 
+  // Handle Gamepad Joins
   useEffect(() => {
     const pollInputs = () => {
       const pads = navigator.getGamepads();
@@ -27,7 +27,6 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
           const pad = pads[i];
           if (!pad) continue;
 
-          // X Button (PlayStation) / A Button (Xbox) is index 0
           const isPressed = pad.buttons[0]?.pressed || pad.buttons[0]?.value > 0.5;
           const wasPressed = prevButtonState.current[pad.index];
 
@@ -36,13 +35,11 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
             const existingIndex = newMappings.findIndex(p => p.gamepadIndex === pad.index);
 
             if (existingIndex >= 0) {
-              // Player exists, toggle their ready state
               newMappings[existingIndex] = { 
                 ...newMappings[existingIndex], 
                 isReady: !newMappings[existingIndex].isReady 
               };
             } else if (newMappings.length < 4) {
-              // New player joining
               newMappings.push({
                 gamepadIndex: pad.index,
                 color: missileColors[newMappings.length],
@@ -50,10 +47,8 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
               });
             }
           }
-          
           prevButtonState.current[pad.index] = isPressed;
         }
-
         return stateMutated ? newMappings : prev;
       });
 
@@ -62,7 +57,36 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
 
     requestRef.current = requestAnimationFrame(pollInputs);
     return () => cancelAnimationFrame(requestRef.current);
-  }, []);
+  }, [missileColors]);
+
+  // Handle Keyboard Joins (Hidden from UI)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space' && !e.repeat) {
+        setPlayerMappings(prev => {
+          let newMappings = [...prev];
+          const existingIndex = newMappings.findIndex(p => p.gamepadIndex === 'keyboard');
+
+          if (existingIndex >= 0) {
+            newMappings[existingIndex] = { 
+              ...newMappings[existingIndex], 
+              isReady: !newMappings[existingIndex].isReady 
+            };
+          } else if (newMappings.length < 4) {
+            newMappings.push({
+              gamepadIndex: 'keyboard',
+              color: missileColors[newMappings.length],
+              isReady: false
+            });
+          }
+          return newMappings;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [missileColors]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-full bg-black font-mono select-none">
@@ -72,7 +96,6 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
       </h1>
 
       <div className="flex gap-8 mb-12 w-full max-w-6xl px-8">
-        {/* Rules */}
         <div className="flex-1 border-4 border-white p-6 bg-black">
           <h2 className="text-3xl font-bold text-[#00ffff] mb-6 border-b-4 border-[#00ffff] inline-block pb-1">
             HOW TO PLAY
@@ -85,7 +108,6 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
           </ul>
         </div>
 
-        {/* Controls */}
         <div className="flex-1 border-4 border-white p-6 bg-black">
           <h2 className="text-3xl font-bold text-[#00ffff] mb-6 border-b-4 border-[#00ffff] inline-block pb-1">
             CONTROLS
@@ -94,12 +116,11 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
             <li><span className="text-white font-bold inline-block w-24">[L2]</span> STEER LEFT</li>
             <li><span className="text-white font-bold inline-block w-24">[R2]</span> STEER RIGHT</li>
             <li><span className="text-[#00ffff] font-bold inline-block w-24">[X]</span> JOIN / READY / LAUNCH</li>
-            <li className="text-lg text-gray-500 pt-2"><span className="inline-block w-24">[P]</span> PAUSE (KEYBOARD ONLY)</li>
+            <li className="text-lg text-gray-500 pt-2"><span className="inline-block w-24">[P]</span> PAUSE GAME</li>
           </ul>
         </div>
       </div>
 
-      {/* Player Slots */}
       <div className="flex gap-8 mb-12 w-full max-w-6xl px-8">
         {[0, 1, 2, 3].map((slotIndex) => {
           const mappedPlayer = playerMappings[slotIndex];

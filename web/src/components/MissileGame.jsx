@@ -10,24 +10,36 @@ const MissileGame = ({ playerConfigs }) => {
   
   const gameState = useRef(null);
   const lastTime = useRef(performance.now());
-  const debugRef = useRef(false); // Track debug toggle outside of game state
+  const debugRef = useRef(false); 
+  
+  // Track keyboard inputs
+  const keysRef = useRef({ space: false, left: false, right: false });
 
-  // Keyboard listener for the Debug switch
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Toggle Debug
-      if (e.key === 'd' || e.key === 'D') {
-        debugRef.current = !debugRef.current;
-      }
-      // Toggle Pause
+      if (e.key === 'd' || e.key === 'D') debugRef.current = !debugRef.current;
       if (e.key === 'p' || e.key === 'P') {
-        if (gameState.current) {
-          gameState.current.isPaused = !gameState.current.isPaused;
-        }
+        if (gameState.current) gameState.current.isPaused = !gameState.current.isPaused;
       }
+      
+      if (e.code === 'Space') { e.preventDefault(); keysRef.current.space = true; }
+      if (e.code === 'ArrowLeft') { e.preventDefault(); keysRef.current.left = true; }
+      if (e.code === 'ArrowRight') { e.preventDefault(); keysRef.current.right = true; }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    const handleKeyUp = (e) => {
+      if (e.code === 'Space') { e.preventDefault(); keysRef.current.space = false; }
+      if (e.code === 'ArrowLeft') { e.preventDefault(); keysRef.current.left = false; }
+      if (e.code === 'ArrowRight') { e.preventDefault(); keysRef.current.right = false; }
+    };
+
+    window.addEventListener('keydown', handleKeyDown, { passive: false });
+    window.addEventListener('keyup', handleKeyUp, { passive: false });
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, []);
 
   useEffect(() => {
@@ -39,17 +51,13 @@ const MissileGame = ({ playerConfigs }) => {
     
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    
     const deltaTime = (time - lastTime.current) / 1000;
     lastTime.current = time;
 
-    // 1. Run Physics
-    updatePhysics(gameState.current, navigator.getGamepads(), deltaTime, canvas.width, canvas.height);
-    
-    // 2. Render Screen (Now passing debugRef.current!)
+    // Pass keysRef.current into the physics engine
+    updatePhysics(gameState.current, navigator.getGamepads(), keysRef.current, deltaTime, canvas.width, canvas.height);
     renderFrame(ctx, gameState.current, canvas.width, canvas.height, debugRef.current);
 
-    // 3. Handle Level Transitions
     if (gameState.current.phase !== 'PLAYING' && gameState.current.phaseTimer <= 0) {
       if (gameState.current.phase === 'LEVEL_CLEARED') {
         const nextLevel = (gameState.current.levelIndex + 1) % levels.length;
