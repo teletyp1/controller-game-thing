@@ -3,61 +3,76 @@ import fs from 'fs';
 
 const app = express();
 app.use(express.json());
-
-// Serve the compiled React game
 app.use(express.static('dist'));
 
-// Handle lightbar requests
 app.post('/api/lightbar', (req, res) => {
-  // 1. Immediately exit and quietly succeed if running on Windows
-  if (process.platform === 'win32') {
-    return res.sendStatus(200); 
-  }
+  if (process.platform === 'win32') return res.sendStatus(200);
 
   const { index, color } = req.body;
   if (index === undefined || !color) return res.sendStatus(400);
 
   try {
     const sysfsPath = '/sys/class/leds';
-    
-    // 2. Double-check the path exists just in case (quiet fallback)
-    if (!fs.existsSync(sysfsPath)) return res.sendStatus(200); 
+    if (!fs.existsSync(sysfsPath)) return res.sendStatus(200);
 
-    // Find all Sony controller LED directories in Linux sysfs
     const leds = fs.readdirSync(sysfsPath);
-    
-    const redLeds = leds.filter(dir => 
-      dir.endsWith(':red')
-    );
+    const redLeds = leds.filter(dir => dir.endsWith(':red'));
 
-    // Sort chronologically to match the player join order
-    redLeds.sort(); 
+    // Parse hardware metadata for each controller
+    const controllers = redLeds.map(dir => {
+      const baseName = dir.replace(':red', '');
+      let jsIndex = null;
+      let inputNum = 0;
 
-    if (index >= redLeds.length) {
-      return res.sendStatus(200); // Fail quietly if controller isn't mapped yet
+      // 1. Inspect sysfs device link for joystick node (js0, js1, ...)
+      try {
+        const devPath = `${sysfsPath}/${dir}/device`;
+        if (fs.existsSync(devPath)) {
+          const files = fs.readdirSync(devPath);
+          const jsFile = files.find(f => /^js\d+$/.test(f));
+          if (jsFile) {
+            jsIndex = parseInt(jsFile.replace('js', ''), 10);
+          }
+        }
+      } catch (e) {}
+
+      // 2. Extract numeric input ID (e.g., input4 -> 4) for natural sorting
+      const match = dir.match(/input(\d+)/);
+      if (match) {
+        inputNum = parseInt(match[1], 10);
+      }
+
+      return { baseName, jsIndex, inputNum };
+    });
+
+    // Sort numerically (by jsIndex if present, otherwise by input integer)
+    controllers.sort((a, b) => {
+      if (a.jsIndex !== null && b.jsIndex !== null) {
+        return a.jsIndex - b.jsIndex;
+      }
+      return a.inputNum - b.inputNum;
+    });
+
+    // Prefer exact jsIndex match, fall back to sorted array index
+    let target = controllers.find(c => c.jsIndex === index);
+    if (!target && index < controllers.length) {
+      target = controllers[index];
     }
 
-    const baseName = redLeds[index].replace(':red', '');
+    if (!target) return res.sendStatus(200);
 
     const r = parseInt(color.slice(1, 3), 16);
     const g = parseInt(color.slice(3, 5), 16);
     const b = parseInt(color.slice(5, 7), 16);
 
-    // Write directly to the hardware
-    fs.writeFileSync(`${sysfsPath}/${baseName}:red/brightness`, r.toString());
-    fs.writeFileSync(`${sysfsPath}/${baseName}:green/brightness`, g.toString());
-    fs.writeFileSync(`${sysfsPath}/${baseName}:blue/brightness`, b.toString());
+    fs.writeFileSync(`${sysfsPath}/${target.baseName}:red/brightness`, r.toString());
+    fs.writeFileSync(`${sysfsPath}/${target.baseName}:green/brightness`, g.toString());
+    fs.writeFileSync(`${sysfsPath}/${target.baseName}:blue/brightness`, b.toString());
 
     res.sendStatus(200);
   } catch (err) {
-    // 3. If anything fails (like a permission error), fail quietly without crashing
     res.sendStatus(200);
   }
 });
 
-app.listen(3000, () => {
-  console.log(`Kiosk server running on port 3000`);
-  if (process.platform === 'win32') {
-    console.log('Running on Windows: Hardware lightbar controls are safely disabled.');
-  }
-});
+app.listen(3000, () => console.log('Kiosk server running on port 3000'));

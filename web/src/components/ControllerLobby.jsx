@@ -89,16 +89,16 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   }, [missileColors]);
 
   useEffect(() => {
-    playerMappings.forEach((player, i) => {
+    playerMappings.forEach((player) => {
       if (player.gamepadIndex !== 'keyboard') {
         fetch('/api/lightbar', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ index: i, color: player.color })
-        }).catch(() => {}); // Fails silently if the network is busy
+          body: JSON.stringify({ index: player.gamepadIndex, color: player.color })
+        }).catch(() => {});
       }
     });
-  }, [playerMappings.length]);
+  }, [playerMappings]);
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-full bg-black font-mono select-none">
