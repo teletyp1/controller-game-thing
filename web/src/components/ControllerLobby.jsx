@@ -5,8 +5,8 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   const requestRef = useRef();
   const prevButtonState = useRef({}); 
   
-  const missileColors = ['#ff0000', '#00ff00', '#ffff00', '#ff8800']; 
-  const colorNames = ['P1 (RED)', 'P2 (GREEN)', 'P3 (YELLOW)', 'P4 (ORANGE)'];
+  const missileColors = ['#ff0000', '#00ff00', '#ffff00', '#0000ff']; 
+  const colorNames = ['P1 (RED)', 'P2 (GREEN)', 'P3 (YELLOW)', 'P4 (BLUE)'];
 
   useEffect(() => {
     if (playerMappings.length > 0 && playerMappings.every(p => p.isReady)) {
