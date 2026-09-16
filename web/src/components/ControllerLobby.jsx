@@ -88,6 +88,18 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [missileColors]);
 
+  useEffect(() => {
+    playerMappings.forEach((player, i) => {
+      if (player.gamepadIndex !== 'keyboard') {
+        fetch('/api/lightbar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: i, color: player.color })
+        }).catch(() => {}); // Fails silently if the network is busy
+      }
+    });
+  }, [playerMappings.length]);
+
   return (
     <div className="flex flex-col items-center justify-center h-screen w-full bg-black font-mono select-none">
       
