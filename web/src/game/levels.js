@@ -1,7 +1,7 @@
 export const levels = [
   {
     id: 1,
-    timeLimit: 20, 
+    timeLimit: 100, 
     cannon: { x: 150, y: 540, angle: 0 }, // Left side, pointing right
     obstacles: [
       { x: 860, y: 440, width: 200, height: 200, color: '#374151' }
@@ -15,7 +15,7 @@ export const levels = [
   },
   {
     id: 2,
-    timeLimit: 25,
+    timeLimit: 100,
     cannon: { x: 960, y: 900, angle: -Math.PI / 2 }, // Bottom center, pointing UP
     obstacles: [
       { x: 500, y: 200, width: 100, height: 680, color: '#374151' }, 
@@ -31,7 +31,7 @@ export const levels = [
   },
   {
     id: 3,
-    timeLimit: 30,
+    timeLimit: 100,
     cannon: { x: 100, y: 100, angle: 0 }, // Top left, tight corner
     obstacles: [
       { x: 760, y: 240, width: 400, height: 400, color: '#374151' }, 
@@ -49,7 +49,7 @@ export const levels = [
   },
   {
     id: 4,
-    timeLimit: 80, // Solo player gets 80s, 4-players get 20s
+    timeLimit: 200, // Solo player gets 80s, 4-players get 20s
     cannon: { x: 960, y: 950, angle: -Math.PI / 2 }, 
     obstacles: [
       { x: 700, y: 0, width: 100, height: 700, color: '#374151' },     // Left main wall
@@ -76,7 +76,7 @@ export const levels = [
   // A brutal left-to-right obstacle course where targets are nested in tight corners.
   {
     id: 5,
-    timeLimit: 100, 
+    timeLimit: 200, 
     cannon: { x: 100, y: 540, angle: 0 }, 
     obstacles: [
       { x: 450, y: 0, width: 100, height: 400, color: '#374151' },      // Top Wall 1
@@ -104,7 +104,7 @@ export const levels = [
   // A heavy maze of small blocks. Missiles will crash into each other here easily.
   {
     id: 6,
-    timeLimit: 120, 
+    timeLimit: 200, 
     cannon: { x: 960, y: 100, angle: Math.PI / 2 }, 
     obstacles: [
       // Top Row
