@@ -155,15 +155,20 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
     ctx.fillText(statusText, startX + hudWidth - 20, hudY + (hudHeight / 2));
   });
 
-  // 8. Blocky Time Bar
-  if (state.timeRemaining > 0) {
-    const timePercentage = state.timeRemaining / state.timeLimit;
-    ctx.fillStyle = timePercentage < 0.2 ? '#ff0000' : '#00ff00';
-    ctx.fillRect(0, 0, width * timePercentage, 16);
-  }
+ // 8. Count-up Timer (Top Center)
+  const totalSeconds = state.elapsedTime || 0;
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = Math.floor(totalSeconds % 60);
+  const hundredths = Math.floor((totalSeconds % 1) * 100);
+  const timeString = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(hundredths).padStart(2, '0')}`;
+
+  ctx.font = 'bold 28px Courier New, monospace';
+  ctx.fillStyle = '#00ffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(`TIME: ${timeString}`, width / 2, 20);
 
   // 9. Overlay Screens
-  // 9. Overlay Screens (Arcade vector styling)
   if (state.phase !== 'PLAYING') {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.88)';
     ctx.fillRect(0, 0, width, height);
@@ -180,33 +185,32 @@ export const renderFrame = (ctx, state, width, height, isDebug = false) => {
     else if (state.phase === 'LEVEL_CLEARED') {
       ctx.textAlign = 'center';
       
-      // Title
       ctx.font = 'bold 70px Courier New, monospace';
       ctx.fillStyle = '#00ff00';
-      ctx.fillText('LEVEL CLEAR', centerX, centerY - 100);
+      ctx.fillText('LEVEL CLEAR', centerX, centerY - 110);
 
-      // Score Board Card
+      ctx.font = 'bold 32px Courier New, monospace';
+      ctx.fillStyle = '#00ffff';
+      ctx.fillText(`CLEAR TIME: ${timeString}`, centerX, centerY - 30);
+
       ctx.font = 'bold 36px Courier New, monospace';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText(`TIME BONUS: +${state.tallyLevelScore}`, centerX, centerY);
+      ctx.fillText(`TIME BONUS: +${state.tallyLevelScore}`, centerX, centerY + 25);
 
       ctx.fillStyle = '#ffff00';
-      ctx.fillText(`TOTAL SCORE: ${state.tallyTotalScore}`, centerX, centerY + 60);
+      ctx.fillText(`TOTAL SCORE: ${state.tallyTotalScore}`, centerX, centerY + 85);
     } 
     else if (state.phase === 'GAME_COMPLETED') {
       ctx.textAlign = 'center';
 
-      // Victory Title
       ctx.font = 'bold 75px Courier New, monospace';
       ctx.fillStyle = '#00ffff';
       ctx.fillText('MISSION COMPLETE', centerX, centerY - 120);
 
-      // Final Total
       ctx.font = 'bold 45px Courier New, monospace';
       ctx.fillStyle = '#ffffff';
       ctx.fillText(`FINAL SCORE: ${state.totalScore}`, centerX, centerY - 20);
 
-      // Prompt (Subtle blink)
       ctx.font = 'bold 28px Courier New, monospace';
       ctx.fillStyle = Math.floor(Date.now() / 500) % 2 === 0 ? '#00ff00' : '#ffffff';
       ctx.fillText('PRESS [X] OR [SPACE] TO RETURN TO LOBBY', centerX, centerY + 80);

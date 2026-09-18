@@ -20,18 +20,14 @@ const updateTimersAndExplosions = (state, deltaTime) => {
 
 const checkGameStatus = (state) => {
   const activeTargets = state.targets.filter(t => t.active).length;
-  const canContinue = state.missiles.some(m =>
-    ['ALIVE', 'WAITING', 'RESPAWNING'].includes(m.status) ||
-    (m.status === 'EXPLODING' && m.nextStatus !== 'DEAD')
-  );
 
   if (activeTargets === 0) {
     state.phase = 'LEVEL_CLEARED';
-    state.phaseTimer = 3.8; // Time window to count up points and read the board
-    state.levelScore = Math.max(0, Math.floor(state.timeRemaining * 100));
-  } else if (state.timeRemaining <= 0 || !canContinue) {
-    state.phase = 'LEVEL_FAILED';
-    state.phaseTimer = 3.0;
+    state.phaseTimer = 3.8;
+
+    // int(max((120000ms - timeTakenMs), 0) / playerCount)
+    const timeTakenMs = state.elapsedTime * 1000;
+    state.levelScore = Math.floor(Math.max(120000 - timeTakenMs, 0) / state.playerCount);
   }
 };
 
@@ -43,7 +39,6 @@ export const updatePhysics = (state, gamepads, keys, deltaTime, canvasWidth, can
     state.phaseTimer -= deltaTime;
 
     if (state.tallyLevelScore < state.levelScore) {
-      // Roll up the score smoothly over ~1.5 seconds
       const tallyStep = Math.max(300, state.levelScore / 1.5) * deltaTime;
       state.tallyLevelScore = Math.min(state.levelScore, Math.round(state.tallyLevelScore + tallyStep));
       state.tallyTotalScore = state.totalScore + state.tallyLevelScore;
@@ -51,7 +46,7 @@ export const updatePhysics = (state, gamepads, keys, deltaTime, canvasWidth, can
     return;
   }
 
-  // 2. Pre-game countdown & fail screens
+  // 2. Pre-game countdown & fail transitions
   if (state.phase === 'COUNTDOWN' || state.phase === 'LEVEL_FAILED') {
     state.phaseTimer -= deltaTime;
     if (state.phase === 'COUNTDOWN' && state.phaseTimer <= 0) {
@@ -60,8 +55,8 @@ export const updatePhysics = (state, gamepads, keys, deltaTime, canvasWidth, can
     return;
   }
 
-  // 3. Active gameplay loop
-  state.timeRemaining -= deltaTime;
+  // 3. Count elapsed time upwards
+  state.elapsedTime += deltaTime;
 
   processPlayerInputs(state, gamepads, keys, deltaTime);
   checkCollisions(state, gamepads, canvasWidth, canvasHeight);

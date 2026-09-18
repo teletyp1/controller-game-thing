@@ -2,17 +2,15 @@ import { levels } from './levels';
 
 export const initGameState = (levelIndex, playerConfigs, runningTotalScore = 0) => {
   const levelData = levels[levelIndex];
-  
   const playerCount = Math.max(1, playerConfigs.length);
-  const scaledTimeLimit = levelData.timeLimit / playerCount;
 
   return {
     levelIndex,
     phase: 'COUNTDOWN',
     phaseTimer: 4.0,
     isPaused: false,
-    timeRemaining: scaledTimeLimit,
-    timeLimit: scaledTimeLimit,
+    elapsedTime: 0,
+    playerCount,
     cannon: levelData.cannon,
     obstacles: levelData.obstacles,
     targets: levelData.targets.map(t => ({ ...t, active: true })), 
