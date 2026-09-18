@@ -59,20 +59,25 @@ export const checkCollisions = (state, gamepads, canvasWidth, canvasHeight) => {
     // Resolve Outcomes
     if (hitWall) {
       m1.status = 'EXPLODING';
-      m1.nextStatus = 'DEAD';
+      m1.nextStatus = 'RESPAWNING';
+      m1.respawnTimer = 5.0; // 5-second respawn penalty
       triggerRumble(gamepads, m1.id, { duration: 300, weak: 1.0, strong: 1.0 });
     } else if (hitPlayerRef) {
       m1.status = 'EXPLODING';
-      m1.nextStatus = 'DEAD';
+      m1.nextStatus = 'RESPAWNING';
+      m1.respawnTimer = 5.0; // 5-second respawn penalty
+
       hitPlayerRef.status = 'EXPLODING';
-      hitPlayerRef.nextStatus = 'DEAD';
+      hitPlayerRef.nextStatus = 'RESPAWNING';
+      hitPlayerRef.respawnTimer = 5.0; // 5-second respawn penalty
+
       triggerRumble(gamepads, m1.id, { duration: 300, weak: 1.0, strong: 1.0 });
       triggerRumble(gamepads, hitPlayerRef.id, { duration: 300, weak: 1.0, strong: 1.0 });
     } else if (hitTargetRef) {
       hitTargetRef.active = false;
       m1.status = 'EXPLODING';
-      m1.nextStatus = 'RESPAWNING';
-      m1.respawnTimer = 2.0;
+      m1.nextStatus = 'WAITING'; // Instant reload at cannon
+      m1.respawnTimer = 0;
       triggerRumble(gamepads, m1.id, { duration: 150, weak: 0.5, strong: 0.0 });
     }
   }

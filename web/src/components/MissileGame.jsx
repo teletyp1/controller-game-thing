@@ -4,6 +4,8 @@ import { updatePhysics } from '../game/physics';
 import { renderFrame } from '../game/renderer';
 import { levels } from '../game/levels';
 
+const IDLE_TIMEOUT_SECONDS = 60;
+
 const MissileGame = ({ playerConfigs, onExit }) => {
   const canvasRef = useRef(null);
   const requestRef = useRef();
@@ -13,8 +15,8 @@ const MissileGame = ({ playerConfigs, onExit }) => {
   const debugRef = useRef(false); 
   const keysRef = useRef({ space: false, left: false, right: false });
 
-  // Input debouncing to avoid instant accidental exit upon winning
   const victoryBuffer = useRef(0);
+  const idleTimer = useRef(0);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -57,10 +59,38 @@ const MissileGame = ({ playerConfigs, onExit }) => {
 
     const gamepads = navigator.getGamepads();
 
-    // 1. Check for Victory Screen Exit Input (Gamepad X or Space)
+    // 1. Check for Active Input (L2, R2, X, Space, Left, Right)
+    const hasKeyboardInput = keysRef.current.space || keysRef.current.left || keysRef.current.right;
+    let hasGamepadInput = false;
+
+    for (let i = 0; i < gamepads.length; i++) {
+      const pad = gamepads[i];
+      if (!pad) continue;
+
+      const xPressed = pad.buttons[0]?.pressed || pad.buttons[0]?.value > 0.5;
+      const l2Pressed = (pad.buttons[6]?.value || 0) > 0.2;
+      const r2Pressed = (pad.buttons[7]?.value || 0) > 0.2;
+
+      if (xPressed || l2Pressed || r2Pressed) {
+        hasGamepadInput = true;
+        break;
+      }
+    }
+
+    if (hasKeyboardInput || hasGamepadInput) {
+      idleTimer.current = 0;
+    } else {
+      idleTimer.current += deltaTime;
+      if (idleTimer.current >= IDLE_TIMEOUT_SECONDS) {
+        onExit();
+        return;
+      }
+    }
+
+    // 2. Check for Victory Screen Exit Input
     if (gameState.current.phase === 'GAME_COMPLETED') {
       victoryBuffer.current += deltaTime;
-      if (victoryBuffer.current > 1.0) { // 1 sec delay to prevent accidental skips
+      if (victoryBuffer.current > 1.0) {
         let returnPressed = keysRef.current.space;
         if (!returnPressed) {
           for (let i = 0; i < gamepads.length; i++) {
@@ -77,17 +107,16 @@ const MissileGame = ({ playerConfigs, onExit }) => {
       }
     }
 
-    // 2. Physics & Render
+    // 3. Physics & Render
     updatePhysics(gameState.current, gamepads, keysRef.current, deltaTime, canvas.width, canvas.height);
     renderFrame(ctx, gameState.current, canvas.width, canvas.height, debugRef.current);
 
-    // 3. Level Progression Handling
+    // 4. Level Progression Handling
     if (gameState.current.phase === 'LEVEL_CLEARED' && gameState.current.phaseTimer <= 0) {
       const nextTotalScore = gameState.current.totalScore + gameState.current.levelScore;
       const nextLevelIndex = gameState.current.levelIndex + 1;
 
       if (nextLevelIndex >= levels.length) {
-        // All levels completed!
         gameState.current.phase = 'GAME_COMPLETED';
         gameState.current.totalScore = nextTotalScore;
         victoryBuffer.current = 0;
@@ -95,7 +124,6 @@ const MissileGame = ({ playerConfigs, onExit }) => {
         gameState.current = initGameState(nextLevelIndex, playerConfigs, nextTotalScore);
       }
     } else if (gameState.current.phase === 'LEVEL_FAILED' && gameState.current.phaseTimer <= 0) {
-      // Retry current level; total score up to this level is preserved
       gameState.current = initGameState(gameState.current.levelIndex, playerConfigs, gameState.current.totalScore);
     }
 

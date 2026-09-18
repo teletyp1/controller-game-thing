@@ -124,8 +124,8 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
           </h2>
           <ul className="space-y-4 text-xl text-gray-300">
             <li>&gt; DESTROY ALL <span className="text-[#ff0055] font-bold">TARGETS</span> BEFORE TIME RUNS OUT.</li>
-            <li>&gt; HITTING TARGETS DISABLES YOUR SHIP FOR <span className="text-[#ffff00] font-bold">2 SECONDS</span>.</li>
-            <li>&gt; HITTING WALLS OR ALLIES CAUSES <span className="text-[#ff0000] font-bold">PERMADEATH</span>.</li>
+            <li>&gt; HITTING TARGETS GRANTS AN <span className="text-[#00ff00] font-bold">INSTANT RESPAWN</span>.</li>
+            <li>&gt; CRASHING CAUSES A <span className="text-[#ff0000] font-bold">5 SECOND PENALTY</span>.</li>
             <li>&gt; DO NOT LAUNCH FROM THE CANNON AT THE SAME TIME!</li>
           </ul>
         </div>

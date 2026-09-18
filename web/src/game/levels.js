@@ -1,7 +1,6 @@
 export const levels = [
   {
     id: 1,
-    timeLimit: 100, 
     cannon: { x: 150, y: 540, angle: 0 }, // Left side, pointing right
     obstacles: [
       { x: 860, y: 440, width: 200, height: 200, color: '#374151' }
@@ -15,7 +14,6 @@ export const levels = [
   },
   {
     id: 2,
-    timeLimit: 100,
     cannon: { x: 960, y: 900, angle: -Math.PI / 2 }, // Bottom center, pointing UP
     obstacles: [
       { x: 500, y: 200, width: 100, height: 680, color: '#374151' }, 
@@ -31,7 +29,6 @@ export const levels = [
   },
   {
     id: 3,
-    timeLimit: 100,
     cannon: { x: 100, y: 100, angle: 0 }, // Top left, tight corner
     obstacles: [
       { x: 760, y: 240, width: 400, height: 400, color: '#374151' }, 
@@ -49,7 +46,6 @@ export const levels = [
   },
   {
     id: 4,
-    timeLimit: 200, // Solo player gets 80s, 4-players get 20s
     cannon: { x: 960, y: 950, angle: -Math.PI / 2 }, 
     obstacles: [
       { x: 700, y: 0, width: 100, height: 700, color: '#374151' },     // Left main wall
@@ -59,24 +55,19 @@ export const levels = [
       { x: 1420, y: 400, width: 500, height: 100, color: '#374151' }   // Right room divider
     ],
     targets: [
-      // Left side targets
       { x: 200, y: 200, radius: 20 },
       { x: 200, y: 700, radius: 20 },
       { x: 500, y: 200, radius: 20 },
       { x: 500, y: 700, radius: 20 },
-      // Right side targets
+
       { x: 1720, y: 200, radius: 20 },
       { x: 1720, y: 700, radius: 20 },
       { x: 1420, y: 200, radius: 20 },
       { x: 1420, y: 700, radius: 20 }
     ]
   },
-
-  // Level 5: The Gauntlet (10 Targets)
-  // A brutal left-to-right obstacle course where targets are nested in tight corners.
   {
     id: 5,
-    timeLimit: 200, 
     cannon: { x: 100, y: 540, angle: 0 }, 
     obstacles: [
       { x: 450, y: 0, width: 100, height: 400, color: '#374151' },      // Top Wall 1
@@ -99,33 +90,26 @@ export const levels = [
       { x: 1800, y: 930, radius: 20 }
     ]
   },
-
-  // Level 6: The Pillar Room (11 Targets)
-  // A heavy maze of small blocks. Missiles will crash into each other here easily.
   {
     id: 6,
     timeLimit: 200, 
     cannon: { x: 960, y: 100, angle: Math.PI / 2 }, 
     obstacles: [
-      // Top Row
       { x: 300, y: 300, width: 150, height: 150, color: '#374151' },
       { x: 750, y: 300, width: 150, height: 150, color: '#374151' },
       { x: 1020, y: 300, width: 150, height: 150, color: '#374151' },
       { x: 1470, y: 300, width: 150, height: 150, color: '#374151' },
       
-      // Middle Row (Offset)
       { x: 525, y: 550, width: 150, height: 150, color: '#1f2937' },
       { x: 885, y: 550, width: 150, height: 150, color: '#1f2937' },
       { x: 1245, y: 550, width: 150, height: 150, color: '#1f2937' },
       
-      // Bottom Row
       { x: 300, y: 800, width: 150, height: 150, color: '#374151' },
       { x: 750, y: 800, width: 150, height: 150, color: '#374151' },
       { x: 1020, y: 800, width: 150, height: 150, color: '#374151' },
       { x: 1470, y: 800, width: 150, height: 150, color: '#374151' },
     ],
     targets: [
-      // Tucked tightly between the pillars
       { x: 600, y: 400, radius: 18 },
       { x: 960, y: 400, radius: 18 },
       { x: 1320, y: 400, radius: 18 },
