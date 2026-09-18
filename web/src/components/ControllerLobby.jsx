@@ -110,9 +110,12 @@ const ControllerLobby = ({ connectedPads, onStart }) => {
   return (
     <div className="flex flex-col items-center justify-center h-screen w-full bg-black font-mono select-none">
       
-      <h1 className="text-7xl font-bold mb-8 text-white tracking-widest border-b-4 border-white pb-4">
+      <h1 className="text-7xl font-bold text-white tracking-widest">
         CO-OP STRIKE
       </h1>
+      <h2 className="text-4xl font-bold mb-8 text-white  border-b-4 border-white pb-4">
+        Game not fully tested yet. If a level is unbeatable, please tell someone at this table!
+      </h2>
 
       <div className="flex gap-8 mb-12 w-full max-w-6xl px-8">
         <div className="flex-1 border-4 border-white p-6 bg-black">

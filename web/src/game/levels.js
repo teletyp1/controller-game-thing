@@ -1,7 +1,7 @@
 export const levels = [
-  /*{
+  {
     id: 1,
-    timeLimit: 15, 
+    timeLimit: 20, 
     cannon: { x: 150, y: 540, angle: 0 }, // Left side, pointing right
     obstacles: [
       { x: 860, y: 440, width: 200, height: 200, color: '#374151' }
@@ -15,7 +15,7 @@ export const levels = [
   },
   {
     id: 2,
-    timeLimit: 22,
+    timeLimit: 25,
     cannon: { x: 960, y: 900, angle: -Math.PI / 2 }, // Bottom center, pointing UP
     obstacles: [
       { x: 500, y: 200, width: 100, height: 680, color: '#374151' }, 
@@ -46,7 +46,7 @@ export const levels = [
       { x: 400, y: 880, radius: 25 },
       { x: 1700, y: 880, radius: 25 }
     ]
-  },*/
+  },
   {
     id: 4,
     timeLimit: 80, // Solo player gets 80s, 4-players get 20s
