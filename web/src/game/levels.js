@@ -122,9 +122,7 @@ export const levels = [
       { x: 600, y: 875, radius: 18 },
       { x: 960, y: 875, radius: 18 },
       { x: 1320, y: 875, radius: 18 },
-      
-      // The ultimate dead center trap
-      { x: 960, y: 625, radius: 15 }
+
     ]
   }
 ];
