@@ -59,7 +59,19 @@ const MissileGame = ({ playerConfigs, onExit }) => {
 
     const gamepads = navigator.getGamepads();
 
-    // 1. Check for Active Input (L2, R2, X, Space, Left, Right)
+    // 1. Check for PS Button (Home button, checked across indices 12 and 16)
+    for (let i = 0; i < gamepads.length; i++) {
+      const pad = gamepads[i];
+      if (!pad) continue;
+
+      if (pad.buttons[12]?.pressed || pad.buttons[12]?.value > 0.5 ||
+          pad.buttons[16]?.pressed || pad.buttons[16]?.value > 0.5) {
+        onExit();
+        return;
+      }
+    }
+
+    // 2. Track Idle Timeout
     const hasKeyboardInput = keysRef.current.space || keysRef.current.left || keysRef.current.right;
     let hasGamepadInput = false;
 
@@ -87,14 +99,18 @@ const MissileGame = ({ playerConfigs, onExit }) => {
       }
     }
 
-    // 2. Check for Victory Screen Exit Input
+    // 3. Check for Victory Screen Exit Input
     if (gameState.current.phase === 'GAME_COMPLETED') {
       victoryBuffer.current += deltaTime;
       if (victoryBuffer.current > 1.0) {
         let returnPressed = keysRef.current.space;
         if (!returnPressed) {
           for (let i = 0; i < gamepads.length; i++) {
-            if (gamepads[i]?.buttons[0]?.pressed || gamepads[i]?.buttons[0]?.value > 0.5) {
+            const pad = gamepads[i];
+            if (!pad) continue;
+            if (pad.buttons[0]?.pressed || pad.buttons[0]?.value > 0.5 ||
+                pad.buttons[12]?.pressed || pad.buttons[12]?.value > 0.5 ||
+                pad.buttons[16]?.pressed || pad.buttons[16]?.value > 0.5) {
               returnPressed = true;
               break;
             }
@@ -107,11 +123,11 @@ const MissileGame = ({ playerConfigs, onExit }) => {
       }
     }
 
-    // 3. Physics & Render
+    // 4. Physics & Render
     updatePhysics(gameState.current, gamepads, keysRef.current, deltaTime, canvas.width, canvas.height);
     renderFrame(ctx, gameState.current, canvas.width, canvas.height, debugRef.current);
 
-    // 4. Level Progression Handling
+    // 5. Level Progression Handling
     if (gameState.current.phase === 'LEVEL_CLEARED' && gameState.current.phaseTimer <= 0) {
       const nextTotalScore = gameState.current.totalScore + gameState.current.levelScore;
       const nextLevelIndex = gameState.current.levelIndex + 1;
