@@ -124,5 +124,121 @@ export const levels = [
       { x: 1320, y: 875, radius: 18 },
 
     ]
+  },
+  {
+    id: 7,
+    cannon: { x: 960, y: 100, angle: Math.PI / 2 },
+    obstacles: [
+      // Top horizontal wall (Gap on right)
+      { x: 0, y: 240, width: 1450, height: 80, color: '#374151' },
+      // Top dangling baffle
+      { x: 600, y: 320, width: 80, height: 180, color: '#1f2937' },
+      
+      // Middle horizontal wall (Gap on left)
+      { x: 470, y: 500, width: 1450, height: 80, color: '#374151' },
+      // Middle dangling baffle
+      { x: 1240, y: 580, width: 80, height: 180, color: '#1f2937' },
+      
+      // Bottom horizontal wall (Gap on right)
+      { x: 0, y: 760, width: 1450, height: 80, color: '#374151' },
+      // Bottom dangling baffle
+      { x: 600, y: 840, width: 80, height: 180, color: '#1f2937' }
+    ],
+    targets: [
+      { x: 1700, y: 150, radius: 18 },
+      { x: 1700, y: 370, radius: 18 },
+      { x: 250, y: 370, radius: 18 },
+      { x: 950, y: 410, radius: 18 },
+      { x: 250, y: 630, radius: 18 },
+      { x: 1700, y: 630, radius: 18 },
+      { x: 950, y: 670, radius: 18 },
+      { x: 1700, y: 930, radius: 18 },
+      { x: 250, y: 930, radius: 18 },
+      { x: 950, y: 930, radius: 18 }
+    ]
+  },
+  {
+    id: 8,
+    cannon: { x: 960, y: 540, angle: 0 },
+    obstacles: [
+      // Top Vertical Beam (with gap)
+      { x: 920, y: 0, width: 80, height: 160, color: '#374151' },
+      { x: 920, y: 280, width: 80, height: 160, color: '#374151' },
+      
+      // Bottom Vertical Beam (with gap)
+      { x: 920, y: 640, width: 80, height: 160, color: '#374151' },
+      { x: 920, y: 920, width: 80, height: 160, color: '#374151' },
+      
+      // Left Horizontal Beam (with gap)
+      { x: 0, y: 500, width: 340, height: 80, color: '#1f2937' },
+      { x: 460, y: 500, width: 400, height: 80, color: '#1f2937' },
+      
+      // Right Horizontal Beam (with gap)
+      { x: 1060, y: 500, width: 400, height: 80, color: '#1f2937' },
+      { x: 1580, y: 500, width: 340, height: 80, color: '#1f2937' }
+    ],
+    targets: [
+      // Deep Quadrant Targets
+      { x: 200, y: 150, radius: 18 },
+      { x: 1720, y: 150, radius: 18 },
+      { x: 200, y: 930, radius: 18 },
+      { x: 1720, y: 930, radius: 18 },
+      
+      // Targets hiding inside the beam gaps!
+      { x: 960, y: 220, radius: 18 },
+      { x: 960, y: 860, radius: 18 },
+      { x: 400, y: 540, radius: 18 },
+      { x: 1520, y: 540, radius: 18 },
+      
+      // Center ring perimeter
+      { x: 740, y: 320, radius: 18 },
+      { x: 1180, y: 320, radius: 18 },
+      { x: 740, y: 760, radius: 18 },
+      { x: 1180, y: 760, radius: 18 }
+    ]
+  },
+  {
+    id: 9,
+    cannon: { x: 150, y: 540, angle: 0 },
+    obstacles: [
+      // Outer Fortress Walls (with 80px entry holes on all 4 sides)
+      { x: 600, y: 200, width: 60, height: 300, color: '#374151' },
+      { x: 600, y: 580, width: 60, height: 300, color: '#374151' },
+      
+      { x: 1260, y: 200, width: 60, height: 300, color: '#374151' },
+      { x: 1260, y: 580, width: 60, height: 300, color: '#374151' },
+      
+      { x: 660, y: 200, width: 260, height: 60, color: '#374151' },
+      { x: 1000, y: 200, width: 260, height: 60, color: '#374151' },
+      
+      { x: 660, y: 820, width: 260, height: 60, color: '#374151' },
+      { x: 1000, y: 820, width: 260, height: 60, color: '#374151' },
+
+      // Inner Baffles (Blocks direct straight shots into the core)
+      { x: 800, y: 380, width: 60, height: 320, color: '#1f2937' },
+      { x: 1060, y: 380, width: 60, height: 320, color: '#1f2937' },
+      { x: 860, y: 380, width: 200, height: 60, color: '#1f2937' },
+      { x: 860, y: 640, width: 200, height: 60, color: '#1f2937' }
+    ],
+    targets: [
+      // Absolute Core (Very hard to reach)
+      { x: 960, y: 540, radius: 18 },
+      
+      // Inner Fortress Corners
+      { x: 730, y: 330, radius: 18 },
+      { x: 1190, y: 330, radius: 18 },
+      { x: 730, y: 750, radius: 18 },
+      { x: 1190, y: 750, radius: 18 },
+      
+      // Outside Corners
+      { x: 300, y: 150, radius: 18 },
+      { x: 1620, y: 150, radius: 18 },
+      { x: 300, y: 930, radius: 18 },
+      { x: 1620, y: 930, radius: 18 },
+      
+      // Flanks
+      { x: 960, y: 100, radius: 18 },
+      { x: 960, y: 980, radius: 18 }
+    ]
   }
 ];
